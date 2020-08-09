@@ -1,0 +1,51 @@
+/*a. Display a list of all property names and their property id’s for Owner Id: 1426.*/
+SELECT Name, PropertyId
+FROM Property 
+INNER JOIN OwnerProperty ON Property.Id = OwnerProperty.PropertyId
+WHERE OwnerId = 1426
+
+
+/*b. Display the current home value for each property in question a).*/
+SELECT Name, OwnerProperty.PropertyId, Value
+FROM Property 
+INNER JOIN OwnerProperty ON Property.Id = OwnerProperty.PropertyId
+INNER JOIN PropertyHomeValue ON OwnerProperty.PropertyID = PropertyHomeValue.PropertyId
+WHERE OwnerProperty.OwnerId = 1426 AND HomeValueTypeId = 1
+
+
+/*c. For each property in question a), return the following:*/                                                                     
+/*i. Using rental payment amount, rental payment frequency, tenant start date and tenant end date to write a query that returns the sum of all payments from start date to end date.*/
+SELECT Name, OwnerProperty.PropertyId, "Sum of all payments" = 
+	CASE
+		WHEN PaymentFrequencyId = 1 THEN DATEDIFF(DAY, StartDate, EndDate) /7 * PaymentAmount
+		WHEN PaymentFrequencyId = 2 THEN DATEDIFF(WEEK, StartDate, EndDate) / 2 * PaymentAmount
+		WHEN PaymentFrequencyId = 3 THEN (DATEDIFF(MONTH, StartDate, EndDate) + 1) * PaymentAmount
+	END
+FROM Property 
+INNER JOIN OwnerProperty ON Property.Id = OwnerProperty.PropertyId
+INNER JOIN TenantProperty ON OwnerProperty.PropertyID = TenantProperty.PropertyID
+WHERE OwnerId = 1426 
+
+/*ii. Display the yield.*/
+SELECT Name, OwnerProperty.PropertyId, Yield
+FROM Property
+INNER JOIN OwnerProperty ON Property.Id = OwnerProperty.PropertyId
+INNER JOIN PropertyFinance ON OwnerProperty.PropertyID = PropertyFinance.PropertyId
+WHERE OwnerId = 1426
+
+
+/*d. Display all the jobs available*/
+SELECT PropertyId, JobDescription
+FROM Job
+WHERE JobStatusId = 1
+ORDER BY PropertyId
+
+
+/*e. Display all property names, current tenants first and last names and rental payments per week/ fortnight/month for the properties in question a).*/
+SELECT Property.Name, FirstName, LastName, TenantPaymentFrequencies.Name AS "Rental payments"
+FROM Property
+INNER JOIN OwnerProperty ON Property.Id = OwnerProperty.PropertyId
+INNER JOIN TenantProperty ON OwnerProperty.PropertyId = TenantProperty.PropertyId
+INNER JOIN Person ON TenantProperty.TenantId = Person.Id
+INNER JOIN TenantPaymentFrequencies ON TenantProperty.PaymentFrequencyId = TenantPaymentFrequencies.Id
+
